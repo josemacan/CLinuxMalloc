@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
+
 
 #define BLOCK_SIZE 20       // tamano del bloque de metadata 20 dec = 14 h
 #define align4(x) (((((x)-1)>>2)<<2)+4)
@@ -99,7 +101,7 @@ int prefix(const char *, const char *);
 // @param: 1) prefijo 2) arreglo completo
 // @return: 1 = true, 0 = false
 
-void liberar (struct node *);
+int liberar (struct node *);
 // @desc: libera un bloque reservado -> Coloco free
 // @param: direccion del bloque a liberar
 // @return:
@@ -114,15 +116,30 @@ struct node *separar(struct node* , size_t);
 // @param: struct node* - direccion del bloque que quiero dividir - size_t - tamano deseado del nuevo bloque
 // @return: direccion del nuevo bloque
 
-void launcher_malloc(char *input);
+int launcher_malloc(char *input);
 void launcher_buscar_d( char *input);
 void launcher_buscar_v( char *input);
-void launcher_separar( char *input);
-void launcher_separar( char *input);
+int launcher_separar( char *input);
 void launcher_liberar( char *input);
 void launcher_borrar( char *input);
+void launcher_tests();
+
+
 
 void imprimirDirecciones(); //////// BORRAR
+
+void grupoTest();
+int testAlocarMemoria(); // Prueba de correcta allocacion de memoria
+int testAlocarMemoriaERROR();   // Pruebo valor erroneo de memoria
+int testLiberarMemoria();   // Pruebo flag de libre
+int testLiberarMemoriaERROR();  // Pruebo liberar un espacio no existente
+int testBuscarDireccion();  // Pruebo encontrar chunk de memoria por su direccion
+int testBuscarDireccionERROR(); // Pruebo error de chunk no existente
+int testBuscarValor();  // Pruebo encontrar chunk de memoria por valor (FIRST SEARCH)
+int testBuscarValorERROR(); // Pruebo error de chunk no existe
+int testSeparar();  // Pruebo
+int testSepararERROR(); // Pruebo valor mas grande que espacio del bloque a separar
+int testdesplegarLista();   // Pruebo cantidad de bloques alocados desplegados igual a existentes
 
 
 int main() {
@@ -137,7 +154,9 @@ int main() {
             return 0;
         }
         else if (prefix("m", input)) {               //  "m" -> malloc
-            launcher_malloc(input);
+            if(launcher_malloc(input) != 1){
+                printf("\nERROR - Ingrese un valor de memoria mayor a 0");
+            }
         }
         else if (prefix("d", input)) {               // "d" -> despliega lista de
             displayList();
@@ -153,7 +172,9 @@ int main() {
         }
 
         else if (prefix("s", input)) {               // "s" -> despliega para separar un bloque
-            launcher_separar(input);
+            if(launcher_separar(input) == 0){
+                printf("\nERROR AL SEPARAR BLOQUE");
+            }
         }
 
         else if (prefix("f", input)) {               // "f" -> funcion liberar
@@ -164,6 +185,11 @@ int main() {
             launcher_borrar(input);
         }
 
+        else if (prefix("t", input)) {               // "t" -> funcion desplegar tests
+            launcher_tests(input);
+        }
+
+
         else{
             printf("\nComando incorrecto");
             mensaje_inicio();
@@ -173,16 +199,17 @@ int main() {
     return 0;
 }
 
-void launcher_malloc(char *input){
+int launcher_malloc(char *input){
     int b = 0;
     char* cad = strremove(input, "m ");     // quito clave
     b = atoi(cad);                              // convierto  char en entero
 
     if(b <= 0){
-        printf("\nERROR - Ingrese un valor de memoria mayor a 0");
+        return 0;
     }
     else{
         mallocar(b);
+        return 1;
     }
 }
 
@@ -217,7 +244,7 @@ void launcher_buscar_v(char *input){
 
 }
 
-void launcher_separar(char *input){
+int launcher_separar(char *input){
     long int valorinthexa;
 
     char* cad = strremove(input, "s ");
@@ -233,9 +260,12 @@ void launcher_separar(char *input){
         printf("\nTamano ingresado: %ld", tam_s);
 
         separar(puntero,tam_s);
+
+        return 1;
     }
     else{
         printf("\nNO SE PUEDE ENCONTRAR EL BLOQUE A SEPARAR\n");
+        return 0;
     }
 }
 
@@ -248,7 +278,9 @@ void launcher_liberar(char *input){
     valorinthexa = strtoul(cad, NULL, 0);     //convierto string de numero hexa en entero
     void *puntero = (void *)valorinthexa;                   // convierto entero en puntero
 
-    liberar(puntero);
+    if(liberar(puntero) == 0){
+        fprintf(stderr, "\n **LIBERAR ---- FALLO EN LIBRERAR MEMORIA!!!");
+    }
 }
 
 void launcher_borrar(char *input){
@@ -261,8 +293,236 @@ void launcher_borrar(char *input){
     borrar(first,valorinthexa);
 }
 
+void launcher_tests(char *input){
+    grupoTest();
+}
+
+void grupoTest(){
+    int passed = 0;
+    int error = 0;
+    // -- 1)
+    if(testAlocarMemoria() == 1){
+        printf("\n1) Alocar memoria: CORRECTO");
+        passed++;
+    }else{
+        printf("\n1) Alocar memoria: -- FALLO --");
+        error++;
+    }
+    // -- 2)
+    if(testAlocarMemoriaERROR() == 0){
+        printf("\n2) Fallo al alocar memoria: CORRECTO");
+        passed++;
+    }else{
+        printf("\n2) Fallo al alocar memoria: -- FALLO --");
+        error++;
+    }
+    // -- 3)
+    if(testLiberarMemoria() == 1){
+        printf("\n3) Liberar memoria: CORRECTO");
+        passed++;
+    }else{
+        printf("\n3) Liberar memoria: -- FALLO --");
+        error++;
+    }
+    // -- 4)
+    if(testLiberarMemoriaERROR() == 1){
+        printf("\n4) Fallo al liberar memoria: CORRECTO");
+        passed++;
+    }else{
+        printf("\n4) Fallo al liberar memoria: -- FALLO --");
+        error++;
+    }
+
+    // -- 5)
+    if(testBuscarDireccion() == 1){
+        printf("\n5) Buscar por direccion: CORRECTO");
+        passed++;
+    }else{
+        printf("\n5) Buscar por direccion: -- FALLO --");
+        error++;
+    }
+
+    // -- 6)
+    if(testBuscarDireccionERROR() == 1){
+        printf("\n6) Fallo al buscar por direccion: CORRECTO");
+        passed++;
+    }else{
+        printf("\n6) Fallo al buscar por direccion: -- FALLO --");
+        error++;
+    }
+
+    // -- 7)
+    if(testBuscarValor() == 1){
+        printf("\n7) Buscar por valor: CORRECTO");
+        passed++;
+    }else{
+        printf("\n7) Buscar por valor: -- FALLO --");
+        error++;
+    }
+
+    // -- 8)
+    if(testBuscarValorERROR() == 1){
+        printf("\n8) Fallo al buscar por valor: CORRECTO");
+        passed++;
+    }else{
+        printf("\n8) Fallo al buscar por valor: -- FALLO --");
+        error++;
+    }
+
+    // -- 9)
+    if(testSeparar() == 1){
+        printf("\n9) Separar bloque: CORRECTO");
+        passed++;
+    }else{
+        printf("\n9) Separar bloque: -- FALLO --");
+        error++;
+    }
+
+    // -- 10)
+    if(testSepararERROR() == 1){
+        printf("\n10) Fallo al separar bloque: CORRECTO");
+        passed++;
+    }else{
+        printf("\n10) Fallo al separar bloque: -- FALLO --");
+        error++;
+    }
+
+    // -- 11)
+    if(testdesplegarLista() == 1){
+        printf("\n11) Cantidad de bloques desplegados: CORRECTO");
+        passed++;
+    }else{
+        printf("\n11)  Cantidad de bloques desplegados: -- FALLO --");
+        error++;
+    }
+
+}
+
+int testAlocarMemoria(){
+    char* input = "m 10";
+    return launcher_malloc(input);
+}
+
+int testAlocarMemoriaERROR(){
+    char* input = "m 0";
+    return launcher_malloc(input);
+}
+
+int testLiberarMemoria(){
+    struct node * dire = 0;
+    dire = mallocar(20);
+    liberar((void*)dire);
+    if(dire -> free == 1){
+        return 1;
+    }
+    else{
+        return 0;
+    }
 
 
+}
+
+int testLiberarMemoriaERROR(){
+    long int valorinthexa = strtoul("0x558000000000", NULL, 0);     //convierto string de numero hexa en entero
+    void *puntero = (void *)valorinthexa;                   // convierto entero en puntero
+
+    if(liberar(puntero) == 0){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
+int testBuscarDireccion(){
+    struct node * dire = 0;
+    dire = mallocar(40);
+    void *direccion = (void*) dire;
+    struct node *retorno = buscar(first,(int)direccion,1);         // busco dando clave direccion
+    if(retorno != NULL){
+        liberar(retorno);
+        return 1;
+    }
+    else{
+        liberar(retorno);
+        return 0;
+    }
+}
+
+int testBuscarDireccionERROR(){
+    long int valorinthexa = strtoul("0x558000000000", NULL, 0);     //convierto string de numero hexa en entero
+    struct node *retorno = buscar(first,valorinthexa,1);         // busco dando clave direccion
+    if(retorno == NULL){
+        liberar(retorno);
+        return 1;
+    }
+    else{
+        liberar(retorno);
+        return 0;
+    }
+}
+
+int testBuscarValor(){
+    struct node * dire = 0;
+    dire = mallocar(40);
+    int valor = 40;
+    struct node *retorno = buscar(first,valor,0);         // busco dando clave direccion
+    if(retorno != NULL){
+        liberar(retorno);
+        return 1;
+    }
+    else{
+        liberar(retorno);
+        return 0;
+    }
+}
+
+int testBuscarValorERROR(){
+    int valor = 491238;
+    struct node *retorno = buscar(first,valor,0);         // busco dando clave direccion
+    if(retorno == NULL){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
+int testSeparar(){
+    struct node * dire = 0;
+    dire = mallocar(80);
+    struct node * nuevo = separar(dire,10);
+    if(  nuevo != NULL){
+        liberar(dire);
+        liberar(nuevo);
+        return 1;
+    }
+    else{
+        liberar(dire);
+        liberar(nuevo);
+        return 0;
+    }
+}
+
+int testSepararERROR(){
+    struct node * dire = 0;
+    dire = mallocar(80);
+    struct node * nuevo = separar(dire,300);
+    if( nuevo == NULL){
+        liberar(dire);
+        liberar(nuevo);
+        return 1;
+    }
+    else{
+        liberar(dire);
+        liberar(nuevo);
+        return 0;
+    }
+}
+
+int testdesplegarLista(){
+
+}
 
 void mensaje_inicio (){
     printf("\nIngrese: ");
@@ -271,7 +531,9 @@ void mensaje_inicio (){
     printf("\n - sd [DIRECCION]  para buscar un bloque mediante su direccion");
     printf("\n - sv [TAMANO]  para buscar un bloque mediante su tamano - METODO FIRST SEARCH");
     printf("\n - s [DIRECCION]  para separar un bloque");
-    printf("\n - d           para desplegar lista de bloques alocados\n");
+    printf("\n - d           para desplegar lista de bloques alocados");
+    printf("\n - t           para iniciar unit tests\n");
+
 
     printf("\n - q           para salir del programa\n");
 }
@@ -362,7 +624,7 @@ struct node *extender_heap(struct node *ultimo, size_t tamano, size_t tam){
     return dirheap;
 }
 
-void liberar (struct node *p){
+int liberar (struct node *p){
 
     if(valid_addr( (void *) p )){   // si la direccion del bloque es valida
 
@@ -388,11 +650,11 @@ void liberar (struct node *p){
             }
             brk(bloque);
         }
+        return 1;
     }
     else
     {
-        fprintf(stderr, "\n **LIBERAR ---- FALLO EN LIBRERAR MEMORIA!!!");
-        exit(-1);
+        return 0;
     }
 }
 
@@ -422,7 +684,7 @@ struct node *separar(struct node *bloque_original, size_t tam){
 
     if(bloque_original -> value_alin <= tam_alineado){   // chequeo que el bloque nuevo cabe dentro del actual
         fprintf(stderr, "\nFALLO EN SEPARAR - Quiere separar un bloque mas chico al necesario...\n");
-        exit(-1);
+        return NULL;
     }
 
     nuevo = (struct node *) (bloque_original + (bloque_original -> value_alin - tam_alineado));    // direccion de nuevo bloque
