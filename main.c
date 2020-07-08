@@ -413,31 +413,38 @@ struct node *fusion (struct node* b){
 
 }
 
-struct node *separar(struct node *bloque, size_t tam){
+struct node *separar(struct node *bloque_original, size_t tam){
+    /* Bloque original = Bloque original + Nuevo*/  // Nuevo bloque va al final del actual
+
     struct node *nuevo;                         // valor
-    size_t tam_alineado = sum_alinear(tam);     // alineo tamanio ingresado
-    if(bloque -> value_alin <= tam_alineado){   // chequeo que el bloque nuevo cabe dentro del actual
+    int tam_alineado = sum_alinear((int)tam );     // alineo tamanio ingresado
+    printf("\nTamano ingresado: %d - Alineado: %d", tam, tam_alineado);
+
+    if(bloque_original -> value_alin <= tam_alineado){   // chequeo que el bloque nuevo cabe dentro del actual
         fprintf(stderr, "\nFALLO EN SEPARAR - Quiere separar un bloque mas chico al necesario...\n");
         exit(-1);
     }
-    nuevo = (struct node *) (bloque + tam_alineado);    // direccion de nuevo bloque
-    nuevo -> value_alin = bloque -> value_alin - BLOCK_SIZE;    // valor alineado del nuevo bloque
-    nuevo -> value = bloque -> value - BLOCK_SIZE;              // valor del nuevo bloque
-    nuevo -> next = bloque -> next;                             // modificacion de anidacion
-    nuevo -> prev = bloque;
+
+    nuevo = (struct node *) (bloque_original + (bloque_original -> value_alin - tam_alineado));    // direccion de nuevo bloque
+    nuevo -> value_alin = tam_alineado;    // valor alineado del nuevo bloque
+    nuevo -> value = tam ;              // valor del nuevo bloque
+    nuevo -> next = bloque_original -> next;                             // modificacion de anidacion
+    nuevo -> prev = bloque_original;
     nuevo -> free = 1;                                          // creo un bloque free
-    bloque ->value_alin = tam_alineado;
-    bloque ->value = tam;
-    bloque -> next = nuevo;
+    nuevo -> direccion = (void *) nuevo;
+    bloque_original ->value_alin = bloque_original -> value_alin - tam_alineado;
+    bloque_original ->value = bloque_original -> value - tam;
+    bloque_original -> next = nuevo;
     if( nuevo -> next){
         nuevo -> next -> prev = nuevo;
     }
-    printf("\nNuevo ---- Valineado: %d - Val: %d ",nuevo -> value_alin, nuevo -> value);
-    printf("\nBloque ---- Valineado: %d - Val: %d ",bloque -> value_alin, bloque -> value);
-
+    printf("\nBloque restante ---- Valineado: %d - Val: %d ",bloque_original -> value_alin, bloque_original -> value);
+    printf("\nBloque creado al final del espacio ---- Valineado: %d - Val: %d ",nuevo -> value_alin, nuevo -> value);
 
     return nuevo;
 }
+
+
 
 int valid_addr (void *p)        // devuelvo si una direccion es valida para liberar (Si esta dentro del heap o no)
 {
