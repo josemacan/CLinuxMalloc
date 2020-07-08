@@ -218,6 +218,7 @@ void launcher_buscar_d(char *input){
 
     char* cad = strremove(input, "sd ");
     valorinthexa = strtoul(cad, NULL, 0);     //convierto string de numero hexa en entero
+    printf("\nDIRE: %s, VALOR ENTERO: %ld", input, valorinthexa);
     struct node *retorno = buscar(first,valorinthexa,1);         // busco dando clave direccion
     if(retorno == NULL){
         printf("-- NO ENCONTRADO --");
@@ -288,7 +289,6 @@ void launcher_borrar(char *input){
 
     char* cad = strremove(input, "dd ");
     valorinthexa = strtoul(cad, NULL, 0);     //convierto string de numero hexa en entero
-    void *puntero = (void *)valorinthexa;
 
     borrar(first,valorinthexa);
 }
@@ -308,6 +308,7 @@ void grupoTest(){
         printf("\n1) Alocar memoria: -- FALLO --");
         error++;
     }
+
     // -- 2)
     if(testAlocarMemoriaERROR() == 0){
         printf("\n2) Fallo al alocar memoria: CORRECTO");
@@ -316,6 +317,7 @@ void grupoTest(){
         printf("\n2) Fallo al alocar memoria: -- FALLO --");
         error++;
     }
+
     // -- 3)
     if(testLiberarMemoria() == 1){
         printf("\n3) Liberar memoria: CORRECTO");
@@ -324,6 +326,7 @@ void grupoTest(){
         printf("\n3) Liberar memoria: -- FALLO --");
         error++;
     }
+
     // -- 4)
     if(testLiberarMemoriaERROR() == 1){
         printf("\n4) Fallo al liberar memoria: CORRECTO");
@@ -368,7 +371,7 @@ void grupoTest(){
         printf("\n8) Fallo al buscar por valor: -- FALLO --");
         error++;
     }
-
+    /*
     // -- 9)
     if(testSeparar() == 1){
         printf("\n9) Separar bloque: CORRECTO");
@@ -395,16 +398,18 @@ void grupoTest(){
         printf("\n11)  Cantidad de bloques desplegados: -- FALLO --");
         error++;
     }
+     */
 
 }
 
 int testAlocarMemoria(){
-    char* input = "m 10";
-    return launcher_malloc(input);
+    char input[MAXSHELL] = "m 10";
+    int retorno = launcher_malloc(input);
+    return retorno;
 }
 
 int testAlocarMemoriaERROR(){
-    char* input = "m 0";
+    char input[MAXSHELL] = "m 0";
     return launcher_malloc(input);
 }
 
@@ -438,7 +443,9 @@ int testBuscarDireccion(){
     struct node * dire = 0;
     dire = mallocar(40);
     void *direccion = (void*) dire;
-    struct node *retorno = buscar(first,(int)direccion,1);         // busco dando clave direccion
+    long int direint = (long int) direccion;
+    printf("\ndire: %ld", direint);
+    struct node *retorno = buscar(first, direint ,1);         // busco dando clave direccion
     if(retorno != NULL){
         liberar(retorno);
         return 1;
@@ -463,8 +470,8 @@ int testBuscarDireccionERROR(){
 }
 
 int testBuscarValor(){
-    struct node * dire = 0;
-    dire = mallocar(40);
+    //struct node * dire = 0;
+    //dire = mallocar(40);
     int valor = 40;
     struct node *retorno = buscar(first,valor,0);         // busco dando clave direccion
     if(retorno != NULL){
@@ -520,9 +527,7 @@ int testSepararERROR(){
     }
 }
 
-int testdesplegarLista(){
 
-}
 
 void mensaje_inicio (){
     printf("\nIngrese: ");
@@ -680,7 +685,7 @@ struct node *separar(struct node *bloque_original, size_t tam){
 
     struct node *nuevo;                         // valor
     int tam_alineado = sum_alinear((int)tam );     // alineo tamanio ingresado
-    printf("\nTamano ingresado: %d - Alineado: %d", tam, tam_alineado);
+    printf("\nTamano ingresado: %zu - Alineado: %d", tam, tam_alineado);
 
     if(bloque_original -> value_alin <= tam_alineado){   // chequeo que el bloque nuevo cabe dentro del actual
         fprintf(stderr, "\nFALLO EN SEPARAR - Quiere separar un bloque mas chico al necesario...\n");
@@ -744,13 +749,15 @@ struct node *borrar(struct node *lista, size_t tam){
     }
     (resultado -> prev) -> next  = resultado -> next;           // modifico next y prev de nodos anterior y posterior
     (resultado -> next) -> prev = resultado -> prev;
+
+    return resultado;
 }
 
 
 
 struct node *buscar (struct node *list, long int n, int flag)
 {   // flag = 1 -> direccion // flag = 0 -> valor
-
+    printf("\nBUSCANDO: %ld", n);
     struct node *p;
 
     for (p = list; p != NULL; p = p -> next){           // Recorro toda la lista
@@ -780,8 +787,8 @@ void displayList()
         printf("**LISTA VACÍA**\n");
     }
     for (p = first; p != NULL; p = p -> next){      // recorro lista anidada e imprimo
-        printf("Dir: %p - Valor: %d - Valor alin: %d - Dire: %p - Free: %d - Prev: %p - Next: %p\n", p,
-                p -> value, p -> value_alin, p -> direccion, p -> free, p -> prev , p -> next);
+        printf("Dir: %p - Valor: %d - Valor alin: %d - Dire: %p - Free: %d - Prev: %p - Next: %p\n", (void *) p,
+                p -> value, p -> value_alin, p -> direccion, p -> free, (void *) p -> prev , (void *) p -> next);
     }
 
     //imprimirDirecciones();
@@ -796,7 +803,7 @@ void imprimirDirecciones()
         printf("**LISTA VACÍA**\n");
     }
     for (p = first; p != NULL; p = p -> next){      // recorro lista anidada e imprimo
-        printf("Dir: %p - Dire: %p \n", p, p -> direccion);
+        printf("Dir: %p - Dire: %p \n", (void *) p, p -> direccion);
     }
 }
 
