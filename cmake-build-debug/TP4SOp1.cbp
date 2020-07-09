@@ -79,6 +79,9 @@
 		<Unit filename="/home/admint/CLionProjects/TP4SOp1/main.c">
 			<Option target="TP4SOp1"/>
 		</Unit>
+		<Unit filename="/home/admint/CLionProjects/TP4SOp1/main_error.txt">
+			<Option target="TP4SOp1"/>
+		</Unit>
 		<Unit filename="/home/admint/CLionProjects/TP4SOp1/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
