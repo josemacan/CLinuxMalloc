@@ -53,6 +53,8 @@ void liberar (struct node *);
 struct node *fusion (struct node* );
 struct node *separar(struct node* , size_t);
 
+void match_comandos( char *input);
+
 void launcher_malloc(char *input);
 void launcher_buscar_d( char *input);
 void launcher_buscar_v( char *input);
@@ -60,6 +62,9 @@ void launcher_separar( char *input);
 void launcher_separar( char *input);
 void launcher_liberar( char *input);
 void launcher_borrar( char *input);
+void launcher_test( char *input);
+void leerPrograma (char* nombreProgr);
+
 
 int main() {
 
@@ -69,44 +74,75 @@ int main() {
         char input[MAXSHELL];
         fgets(input, MAXSHELL, stdin);
         eliminarCaracterNuevaLinea(input);
-        if (prefix("q",input)) {                //  "q" -> salir
-            return 0;
-        }
-        else if (prefix("m", input)) {               //  "m" -> malloc
-            launcher_malloc(input);
-        }
-        else if (prefix("d", input)) {               // "d" -> despliega lista de
-            displayList();
-        }
-        else if (prefix("h", input)) {               // "h" -> despliega mensaje de ayuda
-            mensaje_inicio();
-        }
-        else if (prefix("sd", input)) {               // "sd" -> despliega para buscar por direccion
-            launcher_buscar_d(input);
-        }
-        else if (prefix("sv", input)) {               // "sv" -> despliega para buscar por valor
-            launcher_buscar_v(input);
-        }
-
-        else if (prefix("s", input)) {               // "s" -> despliega para separar un bloque
-            launcher_separar(input);
-        }
-
-        else if (prefix("f", input)) {               // "f" -> funcion liberar
-            launcher_liberar(input);
-        }
-
-        else if (prefix("d", input)) {               // "d" -> funcion borrar
-            launcher_borrar(input);
-        }
-
-        else{
-            printf("\nComando incorrecto");
-            mensaje_inicio();
-        }
+        match_comandos(input);
     }
 
     return 0;
+}
+
+void match_comandos(char* input){
+    if (prefix("q",input)) {                //  "q" -> salir
+        exit(0);
+    }
+    else if (prefix("m", input)) {               //  "m" -> malloc
+        launcher_malloc(input);
+    }
+    else if (prefix("d", input)) {               // "d" -> despliega lista de
+        displayList();
+    }
+    else if (prefix("h", input)) {               // "h" -> despliega mensaje de ayuda
+        mensaje_inicio();
+    }
+    else if (prefix("sd", input)) {               // "sd" -> despliega para buscar por direccion
+        launcher_buscar_d(input);
+    }
+    else if (prefix("sv", input)) {               // "sv" -> despliega para buscar por valor
+        launcher_buscar_v(input);
+    }
+
+    else if (prefix("s", input)) {               // "s" -> despliega para separar un bloque
+        launcher_separar(input);
+    }
+
+    else if (prefix("f", input)) {               // "f" -> funcion liberar
+        launcher_liberar(input);
+    }
+
+    else if (prefix("d", input)) {               // "d" -> funcion borrar
+        launcher_borrar(input);
+    }
+
+    else if (prefix("t", input)){
+        launcher_test(input);
+    }
+
+    else{
+        printf("\nComando incorrecto");
+        mensaje_inicio();
+    }
+}
+
+void leerPrograma (char* nombreProgr){
+    FILE *fp;
+    fp = fopen(nombreProgr,"r");
+    if(fp == NULL){
+        printf("\nERROR AL ABRIR %s", nombreProgr);
+        exit(-1);
+    }
+    char lineacomando [1000];
+
+    while(fgets(lineacomando, sizeof(lineacomando), fp) !=NULL)
+    {
+        eliminarCaracterNuevaLinea(lineacomando);
+        match_comandos(lineacomando);
+    }
+    fclose(fp);
+
+}
+
+void launcher_test(char *input){
+    char* nombre_prog = strremove(input, "t ");     // quito clave
+    leerPrograma(nombre_prog);
 }
 
 void launcher_malloc(char *input){
@@ -129,7 +165,7 @@ void launcher_buscar_d(char *input){
     valorinthexa = strtoul(cad, NULL, 0);     //convierto string de numero hexa en entero
     struct node *retorno = buscar(first,valorinthexa,1);         // busco dando clave direccion
     if(retorno == NULL){
-        printf("-- NO ENCONTRADO --");
+        printf("\n-- NO ENCONTRADO --");
     }
     else{
         printf("- BUSQUEDA POR DIRECCION- ENCONTRADO -- Tam: %d  - Direccion: %p \n", retorno -> value, (void*) retorno);
