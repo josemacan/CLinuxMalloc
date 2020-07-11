@@ -64,6 +64,7 @@ void launcher_liberar( char *input);
 void launcher_borrar( char *input);
 void launcher_test( char *input);
 void leerPrograma (char* nombreProgr);
+void test();
 
 
 int main() {
@@ -141,8 +142,7 @@ void leerPrograma (char* nombreProgr){
 }
 
 void launcher_test(char *input){
-    char* nombre_prog = strremove(input, "t ");     // quito clave
-    leerPrograma(nombre_prog);
+    test();
 }
 
 void launcher_malloc(char *input){
@@ -240,7 +240,7 @@ void mensaje_inicio (){
     printf("\n - sv [TAMANO]  para buscar un bloque mediante su tamano - METODO FIRST SEARCH");
     printf("\n - s [DIRECCION]  para separar un bloque");
     printf("\n - d           para desplegar lista de bloques alocados\n");
-
+    printf("\n - t           para correr test\n");
     printf("\n - q           para salir del programa\n");
 }
 
@@ -494,6 +494,31 @@ void displayList()
         printf("Dir: %p - Valor: %d - Valor alin: %d - Free: %d - Prev: %p - Next: %p\n", (void *) p,
                p -> value, p -> value_alin, p -> free, (void *) p -> prev , (void *) p -> next);
     }
+}
+
+void test() {
+    void * dire1 = mallocar(10);
+    void * dire2 = mallocar(20);
+    void * dire3 = mallocar(30);
+    void * dire4 = mallocar(20);
+    void * dire5 = mallocar(30);
+    void * dire6 = mallocar(10);
+    void * dire7 = mallocar(30);
+    displayList();
+    liberar(dire1);
+    displayList();
+    liberar(dire2);
+    displayList();
+    liberar(dire5);
+    displayList();
+    liberar(dire6);
+    displayList();
+    liberar(dire3);
+    displayList();
+    liberar(dire4);
+    displayList();
+    liberar(dire7);
+    displayList();
 }
 
 
