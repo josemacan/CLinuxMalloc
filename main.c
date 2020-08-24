@@ -10,16 +10,16 @@
 
 // RECETAS
 /*
- * 1) Crear un nodo - LISTO
- * 2) Funcion alocar memoria - LISTO
- * 3) Buscar en una lista - LISTO
- * 4) Eliminar de una lista - LISTO
+ * 1) Crear un nodo
+ * 2) Funcion alocar memoria
+ * 3) Buscar en una lista
+ * 4) Eliminar de una lista
  * 5) Funcion para validar una direccion introducida
  * 6) Free
  * 7) Fusion entre bloques
  * 8) Dividir un bloque
  * 9) Manejo de input
- *
+ * 10) Test
  * */
 
 // VARIABLES
@@ -28,32 +28,31 @@ struct node *first = NULL;  /* variable que siempre apunta al primer nodo de la 
 struct node *ultim = NULL;
 
 struct node {
-    int value;  /* datos se guardan en el nodo*/
-    int value_alin;
-    int free;
+    int value;  /* datos se guardan en el nodo */
+    int value_alin;  /* datos alineados a mult 4 */
+    int free;        /* 1 = libre // 0 = ocupado */
     struct node *next; /*puntero al siguiente nodo*/
     struct node *prev; /*puntero al anterior nodo*/
 };
 
 // FUNCIONES
 
-void nuevonodo(int );   // @desc: lanza creacion de nodo
 void *mallocar(int );   // @desc: aloca memoria
 int sum_alinear (int ); // @desc: alinear a multiplos de 4
 void displayList();     // @desc: muestra lista de todos los bloques reservados
-struct node *buscar (struct node *, long int , int);
-struct node *borrar (struct node *, size_t );
-struct node *extender_heap(struct node *, size_t , size_t);
-void mensaje_inicio ();
-int valid_addr (void *);
+struct node *buscar (struct node *, long int , int); // @desc: busco bloque alocado por direccion o valor
+struct node *borrar (struct node *, size_t ); // @desc: borrar un bloque previamente alocado
+struct node *extender_heap(struct node *, size_t , size_t); // @desc: extiendo el heap en valor
+void mensaje_inicio (); // @desc: -h
+int valid_addr (void *); // @desc: chequeo si la direccion ingresada es menor al heap
 void eliminarCaracterNuevaLinea (const char* );
 char *strremove(char *str, const char *sub);
 int prefix(const char *, const char *);
-void liberar (struct node *);
-struct node *fusion (struct node* );
-struct node *separar(struct node* , size_t);
+void liberar (struct node *);// @desc: cambiar flag de libre de 0 a 1
+struct node *fusion (struct node* ); // @desc: combinar dos bloques contiguos
+struct node *separar(struct node* , size_t); // @desc: crear un nuevo bloque dentro del bloque contenedor
 
-void match_comandos( char *input);
+void match_comandos( char *input); // @desc: menu
 
 void launcher_malloc(char *input);
 void launcher_buscar_d( char *input);
@@ -63,7 +62,8 @@ void launcher_separar( char *input);
 void launcher_liberar( char *input);
 void launcher_borrar( char *input);
 void launcher_test( char *input);
-void leerPrograma (char* nombreProgr);
+
+void test(); // @desc: prueba de distintos metodos
 
 
 int main() {
@@ -122,27 +122,8 @@ void match_comandos(char* input){
     }
 }
 
-void leerPrograma (char* nombreProgr){
-    FILE *fp;
-    fp = fopen(nombreProgr,"r");
-    if(fp == NULL){
-        printf("\nERROR AL ABRIR %s", nombreProgr);
-        exit(-1);
-    }
-    char lineacomando [1000];
-
-    while(fgets(lineacomando, sizeof(lineacomando), fp) !=NULL)
-    {
-        eliminarCaracterNuevaLinea(lineacomando);
-        match_comandos(lineacomando);
-    }
-    fclose(fp);
-
-}
-
 void launcher_test(char *input){
-    char* nombre_prog = strremove(input, "t ");     // quito clave
-    leerPrograma(nombre_prog);
+    test();
 }
 
 void launcher_malloc(char *input){
@@ -154,15 +135,15 @@ void launcher_malloc(char *input){
         printf("\nERROR - Ingrese un valor de memoria mayor a 0");
     }
     else{
-        mallocar(b);
+        mallocar(b); // intento allocar "b" en memoria
     }
 }
 
-void launcher_buscar_d(char *input){
+void launcher_buscar_d(char *input){ // Busco a partir de direccion
     long int valorinthexa = 0;
 
     char* cad = strremove(input, "sd ");
-    valorinthexa = strtoul(cad, NULL, 0);     //convierto string de numero hexa en entero
+    valorinthexa = strtoul(cad, NULL, 0);     // convierto string de numero hexa en entero
     struct node *retorno = buscar(first,valorinthexa,1);         // busco dando clave direccion
     if(retorno == NULL){
         printf("\n-- NO ENCONTRADO --");
@@ -172,13 +153,13 @@ void launcher_buscar_d(char *input){
     }
 }
 
-void launcher_buscar_v(char *input){
+void launcher_buscar_v(char *input){ // First search a partir de valor
     int b = 0;
 
     char* cad = strremove(input, "sv ");
     b = atoi(cad);                            // convierto en char en entero
 
-    struct node *retorno = buscar(first,b,0);                   // busco y muestro el primer bloque que coincida con el valor b
+    struct node *retorno = buscar(first,b,0);    // busco y muestro el primer bloque que coincida con el valor b
 
     if(retorno == NULL){
         printf("-- NO ENCONTRADO --");
@@ -204,7 +185,8 @@ void launcher_separar(char *input){
         size_t tam_s = atoi(inp);
         printf("\nTamano ingresado: %ld", tam_s);
 
-        separar(puntero,tam_s);
+        separar(puntero,tam_s); // direccion del bloque que quiero separar
+                                // valor (sin alinear) del nuevo bloque
     }
     else{
         printf("\nNO SE PUEDE ENCONTRAR EL BLOQUE A SEPARAR\n");
@@ -220,7 +202,7 @@ void launcher_liberar(char *input){
     valorinthexa = strtoul(cad, NULL, 0);     //convierto string de numero hexa en entero
     void *puntero = (void *)valorinthexa;                   // convierto entero en puntero
 
-    liberar(puntero);
+    liberar(puntero);   // puntero = direccion del bloque a liberar
 }
 
 void launcher_borrar(char *input){
@@ -229,7 +211,9 @@ void launcher_borrar(char *input){
     char* cad = strremove(input, "dd ");
     valorinthexa = strtoul(cad, NULL, 0);     //convierto string de numero hexa en entero
 
-    borrar(first,valorinthexa);
+    borrar(first,valorinthexa);     // first = primer bloque alocado
+                                    // valorinthexa = direccion del bloque a borrar
+
 }
 
 void mensaje_inicio (){
@@ -240,7 +224,7 @@ void mensaje_inicio (){
     printf("\n - sv [TAMANO]  para buscar un bloque mediante su tamano - METODO FIRST SEARCH");
     printf("\n - s [DIRECCION]  para separar un bloque");
     printf("\n - d           para desplegar lista de bloques alocados\n");
-
+    printf("\n - t           para correr test\n");
     printf("\n - q           para salir del programa\n");
 }
 
@@ -279,8 +263,6 @@ void * mallocar(int tam){
         ultim = dire;           // el ultimo ahora es el nuevo bloque
 
     }
-
-
 
     return dire;                // devuelvo puntero al nuevo bloque
 
@@ -494,6 +476,31 @@ void displayList()
         printf("Dir: %p - Valor: %d - Valor alin: %d - Free: %d - Prev: %p - Next: %p\n", (void *) p,
                p -> value, p -> value_alin, p -> free, (void *) p -> prev , (void *) p -> next);
     }
+}
+
+void test() {
+    void * dire1 = mallocar(10);
+    void * dire2 = mallocar(20);
+    void * dire3 = mallocar(30);
+    void * dire4 = mallocar(20);
+    void * dire5 = mallocar(30);
+    void * dire6 = mallocar(10);
+    void * dire7 = mallocar(30);        // alloco varios bloques de memoria
+    displayList();
+    liberar(dire1);
+    displayList();
+    liberar(dire2);
+    displayList();
+    liberar(dire5);
+    displayList();
+    liberar(dire6);
+    displayList();
+    liberar(dire3);
+    displayList();
+    liberar(dire4);
+    displayList();
+    liberar(dire7);
+    displayList();
 }
 
 
